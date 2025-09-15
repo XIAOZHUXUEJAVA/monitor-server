@@ -1,0 +1,24 @@
+app:
+  name: "monitor-server"
+  version: "1.0.0"
+  environment: "development"
+
+server:
+  host: "localhost"
+  port: 9000
+
+log:
+  level: "info"
+  format: "json"
+
+cors:
+  allowed_origins:
+    - "http://localhost:3000"
+    - "http://127.0.0.1:3000"
+  allowed_methods:
+    - "GET"
+    - "POST"
+    - "OPTIONS"
+  allowed_headers:
+    - "Content-Type"
+    - "Authorization"
