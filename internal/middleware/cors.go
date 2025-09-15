@@ -21,7 +21,8 @@ func CORS(cfg config.CORSConfig) gin.HandlerFunc {
 			}
 		}
 
-		if !allowed && len(cfg.AllowedOrigins) > 0 && cfg.AllowedOrigins[0] != "*" {
+		// Allow requests without Origin header (like direct API calls) or if * is allowed
+		if !allowed && origin != "" && len(cfg.AllowedOrigins) > 0 && cfg.AllowedOrigins[0] != "*" {
 			c.AbortWithStatus(403)
 			return
 		}

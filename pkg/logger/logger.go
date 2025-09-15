@@ -4,7 +4,6 @@ import (
 	"monitor-server/internal/config"
 
 	"go.uber.org/zap"
-	"go.uber.org/zap"
 )
 
 // Logger wraps zap.Logger to provide a consistent logging interface

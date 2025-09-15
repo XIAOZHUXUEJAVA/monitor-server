@@ -36,13 +36,13 @@ func main() {
 
 	// Create HTTP server
 	srv := &http.Server{
-		Addr:    cfg.Server.Address,
+		Addr:    cfg.Server.Address(),
 		Handler: router,
 	}
 
 	// Start server in a goroutine
 	go func() {
-		logger.Info("Starting server", "address", cfg.Server.Address)
+		logger.Info("Starting server", "address", cfg.Server.Address())
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Error("Failed to start server", "error", err)
 			os.Exit(1)
