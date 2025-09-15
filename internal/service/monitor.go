@@ -3,7 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -144,12 +146,13 @@ func (s *monitorService) GetCPUData(ctx context.Context) (*model.CpuData, error)
 		return nil, fmt.Errorf("failed to get CPU info: %w", err)
 	}
 	
-	var cores int32
+	// Get logical CPU count (includes hyperthreading)
+	cores := int32(runtime.NumCPU())
+	
 	var frequency float64
 	var cpuModel string
 	
 	if len(cpuInfos) > 0 {
-		cores = cpuInfos[0].Cores
 		frequency = cpuInfos[0].Mhz
 		cpuModel = cpuInfos[0].ModelName
 	}
@@ -232,10 +235,24 @@ func (s *monitorService) GetDiskData(ctx context.Context) (*model.DiskData, erro
 	var totalCapacity, totalUsed, totalFree float64
 	
 	for _, partition := range partitions {
-		// Skip special filesystems
+		// Skip special filesystems and virtual mounts
 		if partition.Fstype == "tmpfs" || partition.Fstype == "devtmpfs" || 
 		   partition.Fstype == "sysfs" || partition.Fstype == "proc" ||
-		   partition.Fstype == "squashfs" || partition.Fstype == "overlay" {
+		   partition.Fstype == "squashfs" || partition.Fstype == "overlay" ||
+		   partition.Fstype == "none" || partition.Fstype == "rootfs" ||
+		   partition.Fstype == "9p" { // WSL2 Windows drives
+			continue
+		}
+		
+		// Skip WSL2 and other virtual mounts by path
+		if strings.HasPrefix(partition.Mountpoint, "/mnt/wsl") ||
+		   strings.HasPrefix(partition.Mountpoint, "/usr/lib/wsl") ||
+		   strings.HasPrefix(partition.Mountpoint, "/usr/lib/modules") ||
+		   strings.HasPrefix(partition.Mountpoint, "/mnt/c") ||
+		   strings.HasPrefix(partition.Mountpoint, "/mnt/d") ||
+		   strings.HasPrefix(partition.Mountpoint, "/run") ||
+		   strings.HasPrefix(partition.Mountpoint, "/init") ||
+		   strings.HasPrefix(partition.Mountpoint, "/mnt/wslg") {
 			continue
 		}
 		
