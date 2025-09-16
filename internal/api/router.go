@@ -32,15 +32,16 @@ func NewRouter(cfg *config.Config, logger *logger.Logger, db *database.DB) *gin.
 	hostHandler := handler.NewHostHandler(db.DB)
 	hostConfigHandler := handler.NewHostConfigHandler(db.DB)
 	hostGroupHandler := handler.NewHostGroupHandler(db.DB)
+	alertRuleHandler := handler.NewAlertRuleHandler(db.DB)
 
 	// Setup routes
-	setupRoutes(router, monitorHandler, hostHandler, hostConfigHandler, hostGroupHandler)
+	setupRoutes(router, monitorHandler, hostHandler, hostConfigHandler, hostGroupHandler, alertRuleHandler)
 
 	return router
 }
 
 // setupRoutes configures all API routes
-func setupRoutes(router *gin.Engine, monitorHandler *handler.MonitorHandler, hostHandler *handler.HostHandler, hostConfigHandler *handler.HostConfigHandler, hostGroupHandler *handler.HostGroupHandler) {
+func setupRoutes(router *gin.Engine, monitorHandler *handler.MonitorHandler, hostHandler *handler.HostHandler, hostConfigHandler *handler.HostConfigHandler, hostGroupHandler *handler.HostGroupHandler, alertRuleHandler *handler.AlertRuleHandler) {
 	// Health check endpoint
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -104,6 +105,14 @@ func setupRoutes(router *gin.Engine, monitorHandler *handler.MonitorHandler, hos
 			hostGroups.GET("/:id/hosts", hostGroupHandler.GetGroupHosts)
 			hostGroups.POST("/:id/hosts", hostGroupHandler.AddHostsToGroup)
 			hostGroups.DELETE("/:id/hosts", hostGroupHandler.RemoveHostsFromGroup)
+		}
+
+		// Alert rule endpoints
+		alertRules := v1.Group("/alert-rules")
+		{
+			alertRules.GET("", alertRuleHandler.GetAlertRules)
+			alertRules.PUT("/:metric_type/:severity/threshold", alertRuleHandler.UpdateAlertRuleThreshold)
+			alertRules.POST("/host", alertRuleHandler.CreateHostAlertRule)
 		}
 	}
 

@@ -50,7 +50,7 @@ type SystemInfoDB struct {
 // AlertRule 告警规则模型
 type AlertRule struct {
 	BaseModel
-	Name        string    `gorm:"type:varchar(255);not null;uniqueIndex" json:"name"`
+	Name        string    `gorm:"type:varchar(255);not null" json:"name"`
 	MetricType  string    `gorm:"type:varchar(100);not null;index" json:"metric_type"` // cpu, memory, disk, network
 	Operator    string    `gorm:"type:varchar(10);not null" json:"operator"`           // >, <, >=, <=, ==
 	Threshold   float64   `gorm:"type:decimal(10,2);not null" json:"threshold"`
@@ -58,6 +58,10 @@ type AlertRule struct {
 	Severity    string    `gorm:"type:varchar(50);not null" json:"severity"` // info, warning, critical
 	Enabled     bool      `gorm:"not null;default:true" json:"enabled"`
 	Description string    `gorm:"type:text" json:"description"`
+	HostID      *uint     `gorm:"index" json:"host_id"` // null表示全局规则，有值表示主机特定规则
+	
+	// 关联关系
+	Host        *Host     `gorm:"foreignKey:HostID" json:"host,omitempty"`
 }
 
 // Alert 告警记录模型
