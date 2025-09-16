@@ -11,6 +11,20 @@ log:
   level: "info"
   format: "json"
 
+database:
+  postgres:
+    host: "127.0.0.1"
+    port: 5432
+    user: "xiaozhu"
+    password: "12345679"
+    dbname: "monitordb"
+    schema: "monitor"
+    sslmode: "disable"
+    timezone: "Asia/Shanghai"
+    max_open_conns: 25
+    max_idle_conns: 5
+    conn_max_lifetime: 300
+
 cors:
   allowed_origins:
     - "http://localhost:3000"

@@ -9,10 +9,11 @@ import (
 
 // Config holds all configuration for the application
 type Config struct {
-	App    AppConfig    `mapstructure:"app"`
-	Server ServerConfig `mapstructure:"server"`
-	Log    LogConfig    `mapstructure:"log"`
-	CORS   CORSConfig   `mapstructure:"cors"`
+	App      AppConfig      `mapstructure:"app"`
+	Server   ServerConfig   `mapstructure:"server"`
+	Log      LogConfig      `mapstructure:"log"`
+	CORS     CORSConfig     `mapstructure:"cors"`
+	Database DatabaseConfig `mapstructure:"database"`
 }
 
 // AppConfig holds application-specific configuration
@@ -44,6 +45,32 @@ type CORSConfig struct {
 	AllowedOrigins []string `mapstructure:"allowed_origins"`
 	AllowedMethods []string `mapstructure:"allowed_methods"`
 	AllowedHeaders []string `mapstructure:"allowed_headers"`
+}
+
+// DatabaseConfig holds database configuration
+type DatabaseConfig struct {
+	Postgres PostgresConfig `mapstructure:"postgres"`
+}
+
+// PostgresConfig holds PostgreSQL configuration
+type PostgresConfig struct {
+	Host            string `mapstructure:"host"`
+	Port            int    `mapstructure:"port"`
+	User            string `mapstructure:"user"`
+	Password        string `mapstructure:"password"`
+	DBName          string `mapstructure:"dbname"`
+	Schema          string `mapstructure:"schema"`
+	SSLMode         string `mapstructure:"sslmode"`
+	Timezone        string `mapstructure:"timezone"`
+	MaxOpenConns    int    `mapstructure:"max_open_conns"`
+	MaxIdleConns    int    `mapstructure:"max_idle_conns"`
+	ConnMaxLifetime int    `mapstructure:"conn_max_lifetime"`
+}
+
+// DSN returns PostgreSQL connection string
+func (p PostgresConfig) DSN() string {
+	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s search_path=%s sslmode=%s TimeZone=%s",
+		p.Host, p.Port, p.User, p.Password, p.DBName, p.Schema, p.SSLMode, p.Timezone)
 }
 
 // Load loads configuration from file and environment variables
@@ -94,4 +121,17 @@ func setDefaults() {
 	viper.SetDefault("cors.allowed_origins", []string{"*"})
 	viper.SetDefault("cors.allowed_methods", []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"})
 	viper.SetDefault("cors.allowed_headers", []string{"Content-Type", "Authorization"})
+
+	// Database defaults
+	viper.SetDefault("database.postgres.host", "localhost")
+	viper.SetDefault("database.postgres.port", 5432)
+	viper.SetDefault("database.postgres.user", "postgres")
+	viper.SetDefault("database.postgres.password", "")
+	viper.SetDefault("database.postgres.dbname", "monitordb")
+	viper.SetDefault("database.postgres.schema", "public")
+	viper.SetDefault("database.postgres.sslmode", "disable")
+	viper.SetDefault("database.postgres.timezone", "UTC")
+	viper.SetDefault("database.postgres.max_open_conns", 25)
+	viper.SetDefault("database.postgres.max_idle_conns", 5)
+	viper.SetDefault("database.postgres.conn_max_lifetime", 300)
 }
