@@ -11,6 +11,7 @@ import (
 
 	"monitor-server/internal/api"
 	"monitor-server/internal/config"
+	"monitor-server/internal/database"
 	"monitor-server/pkg/logger"
 
 	"github.com/gin-gonic/gin"
@@ -26,13 +27,31 @@ func main() {
 	// Initialize logger
 	logger := logger.New(cfg.Log)
 
+	// Initialize database
+	db, err := database.New(cfg)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+	defer func() {
+		if err := db.Close(); err != nil {
+			logger.Error("Failed to close database connection", "error", err)
+		}
+	}()
+
+	// Run database setup (migrations and initial data)
+	if err := db.Setup(); err != nil {
+		log.Fatalf("Failed to setup database: %v", err)
+	}
+
+	logger.Info("Database connected and initialized successfully")
+
 	// Set Gin mode
 	if cfg.App.Environment == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	// Initialize router
-	router := api.NewRouter(cfg, logger)
+	router := api.NewRouter(cfg, logger, db)
 
 	// Create HTTP server
 	srv := &http.Server{
