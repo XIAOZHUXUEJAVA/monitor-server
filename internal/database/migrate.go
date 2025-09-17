@@ -12,6 +12,9 @@ func (db *DB) AutoMigrate() error {
 		&model.SystemInfoDB{},
 		&model.AlertRule{},
 		&model.Alert{},
+		&model.AlertNotification{},
+		&model.AlertHistory{},
+		&model.SystemEvent{},
 		&model.MonitoringConfig{},
 	}
 

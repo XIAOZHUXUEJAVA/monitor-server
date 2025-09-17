@@ -30,16 +30,17 @@ func NewRouter(cfg *config.Config, logger *logger.Logger, db *database.DB) *gin.
 	// Initialize handlers
 	monitorHandler := handler.NewMonitorHandler(monitorService, logger)
 	alertRuleHandler := handler.NewAlertRuleHandler(db.DB)
+	alertHandler := handler.NewAlertHandler(db.DB)
 	configHandler := handler.NewConfigHandler(db.DB)
 
 	// Setup routes
-	setupRoutes(router, monitorHandler, alertRuleHandler, configHandler)
+	setupRoutes(router, monitorHandler, alertRuleHandler, alertHandler, configHandler)
 
 	return router
 }
 
 // setupRoutes configures all API routes
-func setupRoutes(router *gin.Engine, monitorHandler *handler.MonitorHandler, alertRuleHandler *handler.AlertRuleHandler, configHandler *handler.ConfigHandler) {
+func setupRoutes(router *gin.Engine, monitorHandler *handler.MonitorHandler, alertRuleHandler *handler.AlertRuleHandler, alertHandler *handler.AlertHandler, configHandler *handler.ConfigHandler) {
 	// Health check endpoint
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -65,6 +66,20 @@ func setupRoutes(router *gin.Engine, monitorHandler *handler.MonitorHandler, ale
 			alertRules.GET("", alertRuleHandler.GetAlertRules)
 			alertRules.PUT("/:metric_type/:severity/threshold", alertRuleHandler.UpdateAlertRuleThreshold)
 		}
+
+		// Alert management endpoints
+		alerts := v1.Group("/alerts")
+		{
+			alerts.GET("/statistics", alertHandler.GetAlertStatistics)
+			alerts.GET("", alertHandler.GetAlerts)
+			alerts.GET("/:id", alertHandler.GetAlertByID)
+			alerts.POST("/:id/acknowledge", alertHandler.AcknowledgeAlert)
+			alerts.POST("/:id/resolve", alertHandler.ResolveAlert)
+			alerts.GET("/:id/history", alertHandler.GetAlertHistory)
+		}
+
+		// System events endpoints
+		v1.GET("/system-events", alertHandler.GetSystemEvents)
 
 		// Monitoring config endpoints
 		configs := v1.Group("/monitoring-configs")

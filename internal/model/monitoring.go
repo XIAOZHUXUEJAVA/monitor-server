@@ -60,22 +60,7 @@ type AlertRule struct {
 	Description string    `gorm:"type:text" json:"description"`
 }
 
-// Alert 告警记录模型
-type Alert struct {
-	BaseModel
-	RuleID      uint      `gorm:"not null;index" json:"rule_id"`
-	Rule        AlertRule `gorm:"foreignKey:RuleID" json:"rule"`
-	Hostname    string    `gorm:"type:varchar(255);not null;index" json:"hostname"`
-	MetricType  string    `gorm:"type:varchar(100);not null" json:"metric_type"`
-	Value       float64   `gorm:"type:decimal(10,2);not null" json:"value"`
-	Threshold   float64   `gorm:"type:decimal(10,2);not null" json:"threshold"`
-	Severity    string    `gorm:"type:varchar(50);not null" json:"severity"`
-	Message     string    `gorm:"type:text;not null" json:"message"`
-	Status      string    `gorm:"type:varchar(50);not null;default:'active'" json:"status"` // active, resolved, suppressed
-	StartTime   time.Time `gorm:"not null" json:"start_time"`
-	EndTime     *time.Time `json:"end_time"`
-	Duration    *int      `json:"duration"` // 持续时间（秒）
-}
+
 
 // MonitoringConfig 监控配置模型
 type MonitoringConfig struct {

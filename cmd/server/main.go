@@ -12,6 +12,7 @@ import (
 	"monitor-server/internal/api"
 	"monitor-server/internal/config"
 	"monitor-server/internal/database"
+	"monitor-server/internal/service"
 	"monitor-server/pkg/logger"
 
 	"github.com/gin-gonic/gin"
@@ -49,6 +50,14 @@ func main() {
 	if cfg.App.Environment == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
+
+	// Initialize services
+	monitorService := service.NewMonitorService()
+	alertDetectorManager := service.NewAlertDetectorManager(db.DB, monitorService)
+
+	// Start alert detector
+	alertDetectorManager.Start()
+	defer alertDetectorManager.Stop()
 
 	// Initialize router
 	router := api.NewRouter(cfg, logger, db)
