@@ -44,6 +44,14 @@ run: build
 dev:
 	$(GOCMD) run ./cmd/server
 
+# Database migration to remove host management
+migrate-remove-hosts:
+	$(GOCMD) run ./cmd/migrate-remove-hosts
+
+# Setup database with initial data
+setup-db:
+	$(GOCMD) run ./cmd/setup-db
+
 # Format code
 fmt:
 	$(GOCMD) fmt ./...
@@ -67,19 +75,21 @@ docker-run:
 # Help
 help:
 	@echo "Available commands:"
-	@echo "  build         - Build the application"
-	@echo "  build-linux   - Build for Linux"
-	@echo "  clean         - Clean build artifacts"
-	@echo "  test          - Run tests"
-	@echo "  test-coverage - Run tests with coverage"
-	@echo "  deps          - Download and tidy dependencies"
-	@echo "  run           - Build and run the application"
-	@echo "  dev           - Run in development mode"
-	@echo "  fmt           - Format code"
-	@echo "  lint          - Run linter"
-	@echo "  install-lint  - Install golangci-lint"
-	@echo "  docker-build  - Build Docker image"
-	@echo "  docker-run    - Run Docker container"
-	@echo "  help          - Show this help"
+	@echo "  build                - Build the application"
+	@echo "  build-linux          - Build for Linux"
+	@echo "  clean                - Clean build artifacts"
+	@echo "  test                 - Run tests"
+	@echo "  test-coverage        - Run tests with coverage"
+	@echo "  deps                 - Download and tidy dependencies"
+	@echo "  run                  - Build and run the application"
+	@echo "  dev                  - Run in development mode"
+	@echo "  migrate-remove-hosts - Remove host management from database"
+	@echo "  setup-db             - Setup database with initial data"
+	@echo "  fmt                  - Format code"
+	@echo "  lint                 - Run linter"
+	@echo "  install-lint         - Install golangci-lint"
+	@echo "  docker-build         - Build Docker image"
+	@echo "  docker-run           - Run Docker container"
+	@echo "  help                 - Show this help"
 
-.PHONY: build build-linux clean test test-coverage deps run dev fmt lint install-lint docker-build docker-run help
+.PHONY: build build-linux clean test test-coverage deps run dev migrate-remove-hosts setup-db fmt lint install-lint docker-build docker-run help

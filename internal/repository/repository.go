@@ -40,8 +40,6 @@ type AlertRepository interface {
 	CreateRule(rule *model.AlertRule) error
 	GetActiveRules() ([]model.AlertRule, error)
 	GetAllRules() ([]model.AlertRule, error)
-	GetRulesByHostID(hostID *uint) ([]model.AlertRule, error) // 获取指定主机的规则（包括全局规则）
-	GetGlobalRules() ([]model.AlertRule, error) // 获取全局规则
 	GetRuleByID(id uint) (*model.AlertRule, error)
 	UpdateRule(rule *model.AlertRule) error
 	DeleteRule(id uint) error
@@ -231,20 +229,7 @@ func (r *alertRepository) GetActiveRules() ([]model.AlertRule, error) {
 
 func (r *alertRepository) GetAllRules() ([]model.AlertRule, error) {
 	var rules []model.AlertRule
-	err := r.db.Preload("Host").Find(&rules).Error
-	return rules, err
-}
-
-func (r *alertRepository) GetRulesByHostID(hostID *uint) ([]model.AlertRule, error) {
-	var rules []model.AlertRule
-	// 获取全局规则（host_id 为 null）和指定主机的规则
-	err := r.db.Preload("Host").Where("host_id IS NULL OR host_id = ?", hostID).Find(&rules).Error
-	return rules, err
-}
-
-func (r *alertRepository) GetGlobalRules() ([]model.AlertRule, error) {
-	var rules []model.AlertRule
-	err := r.db.Where("host_id IS NULL").Find(&rules).Error
+	err := r.db.Find(&rules).Error
 	return rules, err
 }
 

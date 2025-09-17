@@ -29,19 +29,17 @@ func NewRouter(cfg *config.Config, logger *logger.Logger, db *database.DB) *gin.
 
 	// Initialize handlers
 	monitorHandler := handler.NewMonitorHandler(monitorService, logger)
-	hostHandler := handler.NewHostHandler(db.DB)
-	hostConfigHandler := handler.NewHostConfigHandler(db.DB)
-	hostGroupHandler := handler.NewHostGroupHandler(db.DB)
 	alertRuleHandler := handler.NewAlertRuleHandler(db.DB)
+	configHandler := handler.NewConfigHandler(db.DB)
 
 	// Setup routes
-	setupRoutes(router, monitorHandler, hostHandler, hostConfigHandler, hostGroupHandler, alertRuleHandler)
+	setupRoutes(router, monitorHandler, alertRuleHandler, configHandler)
 
 	return router
 }
 
 // setupRoutes configures all API routes
-func setupRoutes(router *gin.Engine, monitorHandler *handler.MonitorHandler, hostHandler *handler.HostHandler, hostConfigHandler *handler.HostConfigHandler, hostGroupHandler *handler.HostGroupHandler, alertRuleHandler *handler.AlertRuleHandler) {
+func setupRoutes(router *gin.Engine, monitorHandler *handler.MonitorHandler, alertRuleHandler *handler.AlertRuleHandler, configHandler *handler.ConfigHandler) {
 	// Health check endpoint
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -61,58 +59,20 @@ func setupRoutes(router *gin.Engine, monitorHandler *handler.MonitorHandler, hos
 		v1.GET("/system", monitorHandler.GetSystem)
 		v1.GET("/processes", monitorHandler.GetProcesses)
 
-		// Host management endpoints
-		hosts := v1.Group("/hosts")
-		{
-			hosts.POST("", hostHandler.CreateHost)
-			hosts.GET("", hostHandler.GetHosts)
-			hosts.GET("/stats", hostHandler.GetHostStats)
-			hosts.PUT("/batch/status", hostHandler.BatchUpdateHostStatus)
-			hosts.GET("/:id", hostHandler.GetHost)
-			hosts.PUT("/:id", hostHandler.UpdateHost)
-			hosts.DELETE("/:id", hostHandler.DeleteHost)
-			
-			// Host configuration endpoints
-			hosts.GET("/:id/configs", hostConfigHandler.GetHostConfigs)
-			hosts.GET("/:id/configs/:key", hostConfigHandler.GetHostConfigByKey)
-			hosts.PUT("/:id/configs/:key", hostConfigHandler.UpdateHostConfigValue)
-			
-			// Host group relationships
-			hosts.GET("/:id/groups", hostGroupHandler.GetHostGroupsForHost)
-		}
-
-		// Host configuration endpoints
-		hostConfigs := v1.Group("/host-configs")
-		{
-			hostConfigs.POST("", hostConfigHandler.CreateHostConfig)
-			hostConfigs.POST("/batch", hostConfigHandler.BatchCreateHostConfigs)
-			hostConfigs.GET("/:id", hostConfigHandler.GetHostConfig)
-			hostConfigs.PUT("/:id", hostConfigHandler.UpdateHostConfig)
-			hostConfigs.DELETE("/:id", hostConfigHandler.DeleteHostConfig)
-		}
-
-		// Host group endpoints
-		hostGroups := v1.Group("/host-groups")
-		{
-			hostGroups.POST("", hostGroupHandler.CreateHostGroup)
-			hostGroups.GET("", hostGroupHandler.GetHostGroups)
-			hostGroups.GET("/stats", hostGroupHandler.GetHostGroupStats)
-			hostGroups.GET("/:id", hostGroupHandler.GetHostGroup)
-			hostGroups.PUT("/:id", hostGroupHandler.UpdateHostGroup)
-			hostGroups.DELETE("/:id", hostGroupHandler.DeleteHostGroup)
-			
-			// Host group member management
-			hostGroups.GET("/:id/hosts", hostGroupHandler.GetGroupHosts)
-			hostGroups.POST("/:id/hosts", hostGroupHandler.AddHostsToGroup)
-			hostGroups.DELETE("/:id/hosts", hostGroupHandler.RemoveHostsFromGroup)
-		}
-
 		// Alert rule endpoints
 		alertRules := v1.Group("/alert-rules")
 		{
 			alertRules.GET("", alertRuleHandler.GetAlertRules)
 			alertRules.PUT("/:metric_type/:severity/threshold", alertRuleHandler.UpdateAlertRuleThreshold)
-			alertRules.POST("/host", alertRuleHandler.CreateHostAlertRule)
+		}
+
+		// Monitoring config endpoints
+		configs := v1.Group("/monitoring-configs")
+		{
+			configs.GET("", configHandler.GetConfigs)
+			configs.GET("/:key", configHandler.GetConfigByKey)
+			configs.PUT("/:key", configHandler.UpdateConfig)
+			configs.GET("/category/:category", configHandler.GetConfigsByCategory)
 		}
 	}
 
